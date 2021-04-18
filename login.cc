@@ -29,7 +29,7 @@ unsigned int get_hdd()
     }
 }
 
-int main()
+int access()
 {
     MYSQL *sock;
     MYSQL_ROW row = NULL;
@@ -54,8 +54,10 @@ int main()
     if (mysql_real_connect(sock, "db5002270739.hosting-data.io", "dbu933956", "Bdd_kara_271169", "Users", 0, NULL, 0))
         cout << "Connected to database !" <<endl;
     else
-        cout << "Connexion failed" <<endl;
-
+    {
+        cout << "Connexion failed\nPlease contact us" <<endl;
+        return (0);
+    }
     //FORMULAIRE
     while (!access)
     {
@@ -84,8 +86,7 @@ int main()
                 mysql_query(sock, str.c_str());
                 mysql_free_result(res);
                 cout << "First connection configured with success !\nglhf !" << endl;
-                access = 1;
-                break ;
+                return (1)
             }
             else
             {
@@ -99,21 +100,23 @@ int main()
                 {
                     mysql_free_result(res);
                     cout << "Authentification succed !\nglhf !" <<endl;
-                    access = 1;
-                    break ;
+                    return (1);
                 }
                 else
+                {
                     cout << "You don't have authorizations to run the cheats on that pc\nPlease contact if there is any problem" << endl;
+                    return (0);
+                }
             }
         }
         else //pseudo invalide veuillez rentrer le pseudo quon vous a fourni
         {
-            
             tries += 1;
             cout << "Invalid Password please try again\n" << endl;
             if (tries == 4)
             {
-                cout << "Invalid Password please contact us\n" << endl;
+                cout << "Invalid Password\nPlease contact us\n" << endl;
+                return (0);
             }
         }
 
