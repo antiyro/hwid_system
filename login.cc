@@ -8,8 +8,26 @@
 # include <unistd.h>
 #endif
 #include <mysql/mysql.h>
+#include <string.h>
 
 using namespace std;
+
+unsigned int get_hdd()
+{
+    DWORD serialNumber = 0;
+    if (GetVolumeInformation(
+        NULL,
+        NULL,
+        NULL,
+        &serialNumber,
+        NULL,
+        NULL,
+        NULL,
+        NULL))
+    {
+        return (serialNumber);
+    }
+}
 
 int main()
 {
@@ -17,8 +35,9 @@ int main()
     MYSQL_ROW row = NULL;
     MYSQL_RES *res = NULL;
 
-    char access = 0;
-    string password, mac_address, str;
+    int access = 0;
+    int tries = 0;
+    string password, hdd_serial, str;
 
     //INITIALISATION DE LA DB
     sock = mysql_init(0);
@@ -32,7 +51,7 @@ int main()
     const char *user = "root";
     const char *pass = "";
     const char *db = "clients";
-    if (mysql_real_connect(sock, "localhost", "root", "", "clients", 0, NULL, 0))
+    if (mysql_real_connect(sock, "db5002270739.hosting-data.io", "dbu933956", "Bdd_kara_271169", "Users", 0, NULL, 0))
         cout << "Connected to database !" <<endl;
     else
         cout << "Connexion failed" <<endl;
@@ -43,7 +62,7 @@ int main()
         cout << "Password : ";
         cin >> password;
 
-        str = "SELECT pseudo FROM clients WHERE pseudo = '"+username+"'";
+        str = "SELECT password FROM clients WHERE password = '"+password+"'";
         mysql_query(sock, str.c_str());
 
         res = mysql_use_result(sock);
@@ -51,27 +70,51 @@ int main()
 
         if (row) //si le pseudo exist
         {
+            mysql_free_result(res);
+            hdd_serial = to_string(get_hdd());
             //ON VERIFIE LADRESSE MAC
-            if (//pas daddress mac on fill)
-            {
+            str = "SELECT hdd_serial FROM clients WHERE hdd_serial = '"+hdd_serial+"'";
+            mysql_query(sock, str.c_str());
+            res = mysql_use_result(sock);
+            row = mysql_fetch_row(res);
 
+            if (!row)
+            {
+                str = "UPDATE clients SET hdd_serial = '"+hdd_serial+"' WHERE password = '"+password+"'";
+                mysql_query(sock, str.c_str());
+                mysql_free_result(res);
+                cout << "First connection configured with success !\nglhf !" << endl;
+                access = 1;
+                break ;
             }
             else
             {
+                mysql_free_result(res);
                 //on verifie que c'est la bonne address mac
-                if (//c la bonne )
+                str = "SELECT hdd_serial FROM clients WHERE password = '"+password+"' AND hdd_serial = '"+hdd_serial+"'";
+                mysql_query(sock, str.c_str());
+                res = mysql_use_result(sock);
+                row = mysql_fetch_row(res);
+                if (row)
                 {
-                    //access passe a 1 et on sort
+                    mysql_free_result(res);
+                    cout << "Authentification succed !\nglhf !" <<endl;
+                    access = 1;
+                    break ;
                 }
                 else
-                {
-                    //tas crus tallais nous avoir? attends quon thagar fdp
-                }
+                    cout << "You don't have authorizations to run the cheats on that pc\nPlease contact if there is any problem" << endl;
             }
         }
         else //pseudo invalide veuillez rentrer le pseudo quon vous a fourni
         {
-            cout << ""
+            
+            tries += 1;
+            cout << "Invalid Password please try again\n" << endl;
+            if (tries == 4)
+            {
+                cout << "Invalid Password please contact us\n" << endl;
+            }
         }
 
     }
