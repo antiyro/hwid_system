@@ -12,7 +12,7 @@
 
 using namespace std;
 
-unsigned int get_hdd()
+/*unsigned int get_hdd()
 {
     DWORD serialNumber = 0;
     if (GetVolumeInformation(
@@ -27,7 +27,7 @@ unsigned int get_hdd()
     {
         return (serialNumber);
     }
-}
+}*/
 
 int access()
 {
@@ -37,7 +37,7 @@ int access()
 
     int access = 0;
     int tries = 0;
-    string password, hdd_serial, str;
+    string password, hdd_serial, str, empty;
 
     //INITIALISATION DE LA DB
     sock = mysql_init(0);
@@ -47,22 +47,20 @@ int access()
         cout << "Mysql initialization failed" <<endl;
     
     //CONNEXION A LA DB
-    const char *host = "localhost";
-    const char *user = "root";
-    const char *pass = "";
-    const char *db = "clients";
-    if (mysql_real_connect(sock, "db5002270739.hosting-data.io", "dbu933956", "Bdd_kara_271169", "Users", 0, NULL, 0))
+    if (mysql_real_connect(sock, "127.0.0.1", "root", "", "clients", 0, NULL, 0))
         cout << "Connected to database !" <<endl;
     else
     {
         cout << "Connexion failed\nPlease contact us" <<endl;
         return (0);
     }
-    //FORMULAIRE
+    //FORMULAIRE D'ACCES
     while (!access)
     {
         cout << "Password : ";
         cin >> password;
+        cout << "hdd_serial : ";
+        cin >> hdd_serial;
 
         str = "SELECT password FROM clients WHERE password = '"+password+"'";
         mysql_query(sock, str.c_str());
@@ -73,21 +71,22 @@ int access()
         if (row) //si le pseudo exist
         {
             mysql_free_result(res);
-            hdd_serial = to_string(get_hdd());
+            //hdd_serial = to_string(get_hdd());
             //ON VERIFIE LADRESSE MAC
-            str = "SELECT hdd_serial FROM clients WHERE hdd_serial = '"+hdd_serial+"'";
+            str = "SELECT password FROM clients WHERE password = '"+password+"' AND hdd_serial IS NULL";
             mysql_query(sock, str.c_str());
             res = mysql_use_result(sock);
             row = mysql_fetch_row(res);
 
-            if (!row)
+            if (row) //si l'address mac n'est pas la bonne ou quelle est egale a NULL
             {
+                mysql_free_result(res);
                 str = "UPDATE clients SET hdd_serial = '"+hdd_serial+"' WHERE password = '"+password+"'";
                 mysql_query(sock, str.c_str());
-                mysql_free_result(res);
                 cout << "First connection configured with success !\nglhf !" << endl;
-                return (1)
+                return (1);
             }
+            //sinon si le pseudo n'existe pas
             else
             {
                 mysql_free_result(res);
@@ -109,7 +108,7 @@ int access()
                 }
             }
         }
-        else //pseudo invalide veuillez rentrer le pseudo quon vous a fourni
+        else //sinon si le pseudo n'existe pas
         {
             tries += 1;
             cout << "Invalid Password please try again\n" << endl;
@@ -122,4 +121,9 @@ int access()
 
     }
     return (0);
+}
+
+int main()
+{
+    access();
 }
