@@ -8,26 +8,19 @@
 # include <unistd.h>
 #endif
 #include <mysql/mysql.h>
-#include <string.h>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
 
 using namespace std;
 
-/*unsigned int get_hdd()
+unsigned int get_hdd()
 {
-    DWORD serialNumber = 0;
-    if (GetVolumeInformation(
-        NULL,
-        NULL,
-        NULL,
-        &serialNumber,
-        NULL,
-        NULL,
-        NULL,
-        NULL))
-    {
-        return (serialNumber);
-    }
-}*/
+    DWORD serNumb;
+    GetVolumeInformation(_T("C:\\"), nullptr, 0, &serNumb, nullptr, nullptr, nullptr, 0);
+}
 
 int access()
 {
@@ -68,17 +61,18 @@ int access()
         res = mysql_use_result(sock);
         row = mysql_fetch_row(res);
 
-        if (row) //si le pseudo exist
+        if (row) //si le pseudo existe
         {
             mysql_free_result(res);
-            //hdd_serial = to_string(get_hdd());
-            //ON VERIFIE LADRESSE MAC
+            /*hdd_serial = to_string(get_hdd());
+            on get le serial number*/
+            //on verifie le hdd_serial number
             str = "SELECT password FROM clients WHERE password = '"+password+"' AND hdd_serial IS NULL";
             mysql_query(sock, str.c_str());
             res = mysql_use_result(sock);
             row = mysql_fetch_row(res);
 
-            if (row) //si l'address mac n'est pas la bonne ou quelle est egale a NULL
+            if (row) //si le hdd_serial de la DB est egale a NULL
             {
                 mysql_free_result(res);
                 str = "UPDATE clients SET hdd_serial = '"+hdd_serial+"' WHERE password = '"+password+"'";
@@ -86,8 +80,7 @@ int access()
                 cout << "First connection configured with success !\nglhf !" << endl;
                 return (1);
             }
-            //sinon si le pseudo n'existe pas
-            else
+            else //sinon si le hdd_serial de la DB est different de NULL
             {
                 mysql_free_result(res);
                 //on verifie que c'est la bonne address mac
