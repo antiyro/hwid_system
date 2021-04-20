@@ -13,14 +13,15 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include "sha256.h"
 
 using namespace std;
 
-unsigned int get_hdd()
+/*unsigned int get_hdd()
 {
     DWORD serNumb;
     GetVolumeInformation(_T("C:\\"), nullptr, 0, &serNumb, nullptr, nullptr, nullptr, 0);
-}
+}*/
 
 int access()
 {
@@ -30,7 +31,7 @@ int access()
 
     int access = 0;
     int tries = 0;
-    string password, hdd_serial, str, empty;
+    string password, hdd_serial, str;
 
     //INITIALISATION DE LA DB
     sock = mysql_init(0);
@@ -54,6 +55,9 @@ int access()
         cin >> password;
         cout << "hdd_serial : ";
         cin >> hdd_serial;
+        //we encrypt serial and password
+        password = sha256(password);
+        hdd_serial = sha256(hdd_serial);
 
         str = "SELECT password FROM clients WHERE password = '"+password+"'";
         mysql_query(sock, str.c_str());
@@ -101,7 +105,7 @@ int access()
                 }
             }
         }
-        else //sinon si le pseudo n'existe pas
+        else //sinon si le password n'existe pas
         {
             tries += 1;
             cout << "Invalid Password please try again\n" << endl;
